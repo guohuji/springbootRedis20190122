@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.redis.springbootredis.dao.TestMapper">
+
+    <!-- public Book selectBook(Integer id); -->
+    <select id="selectBook" resultType="com.boot.redis.springbootredis.model.Book">
+        select * from book where bookid=#{id}
+    </select>
+
+    <!-- public List<Book> selectList(String bookname); -->
+    <select id="selectList" resultType="com.boot.redis.springbootredis.model.Book">
+        select * from book where author=#{author}
+    </select>
+
+    <!-- public Map<Integer,Book> selectMap(String bookname);-->
+    <select id="selectMap" resultType="com.boot.redis.springbootredis.model.Book">
+        select * from book where bookname like #{bookname}
+    </select>
+
+    <resultMap id="MyMap" type="com.boot.redis.springbootredis.model.Book">
+        <id column="bookid" property="bookid"></id>
+        <result column="book_name" property="bookname"></result>
+        <result column="price" property="price"></result>
+        <result column="author" property="author"></result>
+        <result column="pic" property="pic"></result>
+        <result column="publish" property="publish"></result>
+    </resultMap>
+    
+    <!-- public Book selectBookResultMap(Integer id);-->
+    <select id="selectBookResultMap" resultMap="MyMap">
+        select * from book where bookid=#{bookid}
+    </select>
+    
+    <resultMap id="MyBook" type="com.boot.redis.springbootredis.model.Book">
+        <id column="bookid" property="bookid"></id>
+        <result column="book_name" property="bookname"></result>
+        <result column="price" property="price"></result>
+        <result column="author" property="author"></result>
+        <collection property="users" ofType="com.boot.redis.springbootredis.model.User">
+            <id column="id" property="id"></id>
+            <result column="name" property="name"></result>
+            <result column="phone" property="phone"></result>
+        </collection>
+    </resultMap>
+    
+    <!-- public Book selectCollection(Integer id); -->
+    <select id="selectCollection" resultMap="MyBook">
+         select b.bookid,b.book_name,b.price,b.author,u.id,u.name,u.phone
+         from book b
+         left join user u
+         on b.bookid = u.book_user_id
+         where b.bookid = #{id}
+    </select>
+    
+    <resultMap id="MyCollection" type="com.boot.redis.springbootredis.model.Book">
+        <id column="bookid" property="bookid"></id>
+        <result column="book_name" property="bookname"></result>
+        <result column="price" property="price"></result>
+        <result column="author" property="author"></result>
+        <collection property="users"
+                    select="com.boot.redis.springbootredis.dao.UserMapper.selectUserCollectionStep"
+                    column="bookid">
+        </collection>
+    </resultMap>
+    
+    <!-- public Book selectCollectionStep(Integer id); -->
+    <select id="selectCollectionStep" resultMap="MyCollection">
+        select b.bookid bookid,b.book_name book_name,b.price price,b.author author from book b where b.bookid = #{id}
+    </select>
+    
+    <resultMap id="MyIf" type="com.boot.redis.springbootredis.model.Book">
+        <id column="bookid" property="bookid"></id>
+        <result column="book_name" property="bookname"></result>
+    </resultMap>
+    
+    <!-- public Book selectIf(Book book);-->
+    <select id="selectIf" resultMap="MyIf">
+        select * from book
+        <where>
+            <if test="bookid != null">
+                bookid = #{bookid}
+            </if>
+            <if test="bookname != null and bookname !=''">
+                and book_name like #{bookname}
+            </if>
+            <if test="price != null and price != ''">
+                and price = #{price}
+            </if>
+            <if test="author != null and author != ''">
+                and author = #{author}
+            </if>
+            <if test="pic !=null and pic != ''">
+                and pic =#{pic}
+            </if>
+            <if test="publish !=null and publish != ''">
+                and publish =#{publish}
+            </if>
+        </where>
+    </select>
+    
+    <resultMap id="MyChoose" type="com.boot.redis.springbootredis.model.Book">
+        <id column="bookid" property="bookid"></id>
+        <result column="book_name" property="bookname"></result>
+    </resultMap>
+
+    <!-- public Book selectChoose(Book book);-->
+    <select id="selectChoose" resultMap="MyChoose">
+        select * from book
+        <where>
+            <choose>
+                <when test="bookid != null">
+                    bookid = #{bookid}
+                </when>
+                <when test="bookname != null and bookname != ''">
+                    book_name like #{bookname}
+                </when>
+                <otherwise>
+                   pic = #{pic}
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+    
+    <!-- public Book selectUpdateSet(Book book);-->
+    <update id="selectUpdateSet" >
+        update book
+        <set>
+            <if test="bookname !=null and bookname != ''">
+                book_name = #{bookname},
+            </if>
+            <if test="author!=null and author!=''">
+                author = #{author},
+            </if>
+            <if test="pic!= null and pic !=''">
+                pic =#{pic}
+            </if>
+        </set>
+        where bookid = #{bookid}
+    </update>
+    
+    <!-- public List<Book> selectForeach(@Param("ids") List<Integer> list);-->
+    <select id="selectForeach" resultMap="MyChoose">
+        select * from book
+        <where>
+            bookid in
+            <foreach collection="ids" item="item_id" separator=","
+            open="(" close=")">
+                  #{item_id}
+            </foreach>
+        </where>
+    </select>
+    
+    <!--public void insertForeach(@Param("books") List<Book> book);-->
+    <insert id="insertForeach">
+        insert into book(
+          <include refid="insertColumn"></include>
+        ) values
+        <foreach collection="books" item="book" separator=",">
+            (#{book.bookid},#{book.bookname},#{book.price},#{book.author},
+            #{book.pic},#{book.publish})
+        </foreach>
+    </insert>
+
+    <sql id="insertColumn">
+          bookid,book_name,price,author,pic,publish
+    </sql>
+
+    <!-- public Book selectParam(@Param("id") Integer id, @Param("bookname") String bookname);-->
+    <select id="selectParam" resultType="com.boot.redis.springbootredis.model.Book">
+        select * from book where bookid = #{id} and book_name = #{bookname}
+    </select>
+    
+    <!-- public Book selectMapMybatis(Map<String,Object> map);-->
+    <select id="selectMapMybatis" resultType="com.boot.redis.springbootredis.model.Book">
+        select * from book where bookid = #{id} and pic = #{pic}
+    </select>
+</mapper>

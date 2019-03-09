@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>upload</title>
+    <link rel="stylesheet" href="/webjars/layui/2.2.5/css/layui.css" media="all">
+</head>
+<body>
+    <button type="button" class="layui-btn" id="test1">
+        <i class="layui-icon">&#xe67c;</i>上传图片
+    </button>
+
+    <div class="layui-btn-group">
+        <button class="layui-btn layui-btn-sm" id="deleteBtn" onclick="del('f52e81bf7d3e26b2fb321971b1702485')">
+            <i class="layui-icon">&#xe640;</i>
+        </button>
+    </div>
+
+<script type="text/javascript" src="/webjars/layui/2.2.5/layui.js"></script>
+<script type="text/javascript" src="/webjars/jquery/3.1.1/jquery.js"></script>
+<script>
+
+    function del(id){
+        layer.confirm('确定要删除吗？', {
+            btn : [ '确定', '取消' ]
+        }, function() {
+            $.ajax({
+                type : 'delete',
+                url : '/files/'+id,
+                success : function(data) {
+                    layer.msg("删除成功");
+                }
+            });
+
+            layer.close(1);
+        });
+    }
+
+
+    layui.use('upload', function(){
+        var upload = layui.upload;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#test1' //绑定元素
+            ,url: '/upload' //上传接口
+            ,done: function(res){
+                alert("上传成功");
+                alert(res.id);
+            }
+        });
+    });
+</script>
+</body>
+</html>
